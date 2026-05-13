@@ -97,7 +97,7 @@ wrangler deploy cloudflare-worker.js
 ## License
 
 Licensed under **GNU AGPL v3** with Commercial Exception.
-See [LICENSE](./LICENSE) for full terms.
+See [LICENSE.txt](./LICENSE.txt) for full terms.
 
 Commercial licensing: onxorg@proton.me
 
