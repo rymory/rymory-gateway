@@ -1,6 +1,6 @@
 # rymory-gateway
 
-> **Author:** Onur Yaşar ([@onxorg](https://github.com/onxorg))
+> **Author:** Onur Yaşar ([@onurid](https://github.com/onurid))
 > **Part of:** [Rymory](https://rymory.org) — Open Identity Infrastructure
 > © 2017–2026 Onur Yaşar. All rights reserved.
 
@@ -97,7 +97,7 @@ wrangler deploy cloudflare-worker.js
 ## License
 
 Licensed under **GNU AGPL v3** with Commercial Exception.
-See [LICENSE.txt](./LICENSE.txt) for full terms.
+See [LICENSE](./LICENSE) for full terms.
 
 Commercial licensing: onxorg@proton.me
 

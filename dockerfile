@@ -1,3 +1,12 @@
+# Copyright (c) 2017-2026 Onur Yaşar
+# Licensed under AGPL v3 + Commercial Exception
+# See LICENSE.txt
+
+# https://github.com/rymory/rymory-core
+# rymory.org 
+# onuryasar.org
+# onxorg@proton.me 
+
 # Use official Go image as builder
 FROM golang:1.25-alpine AS builder
 
