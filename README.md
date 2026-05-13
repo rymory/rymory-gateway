@@ -1,59 +1,114 @@
+# rymory-gateway
 
-# 📌 LEMORAS-GATEWAY
-
-<!-- 🇹🇷 Bu proje [amaç] için geliştirilmiş bir [uygulama/kütüphane/araç].  
-🇬🇧 This project is a [application/library/tool] developed for [purpose]. -->
-
----
-
-<!-- ## 🚀 Özellikler / Features
-- 🇹🇷 Özellik 1  
-  🇬🇧 Feature 1  
-- 🇹🇷 Özellik 2  
-  🇬🇧 Feature 2  
-- 🇹🇷 Özellik 3  
-  🇬🇧 Feature 3   -->
+> **Author:** Onur Yaşar ([@onxorg](https://github.com/onxorg))
+> **Part of:** [Rymory](https://rymory.org) — Open Identity Infrastructure
+> © 2017–2026 Onur Yaşar. All rights reserved.
 
 ---
 
-## 📥 Kurulum / Installation
+## What is rymory-gateway?
 
-🇹🇷 Projeyi kendi bilgisayarınıza klonlamak için:  
-🇬🇧 To clone the project to your local machine:
+rymory-gateway is the edge layer of the Rymory identity infrastructure. It sits between your applications and the identity backend, handling:
 
-```bash
-git clone https://github.com/lemoras/lemoras-gateway.git
-cd lemoras-gateway
+- **Token management** — secure HMAC-signed cookie wrapping, token validation and renewal
+- **Authentication intercept** — transparently captures login responses, wraps JWT into secure HttpOnly cookies
+- **Rate limiting** — per-IP and per-token fixed-window rate limiting via Cloudflare KV
+- **CORS enforcement** — origin validation against allowed application domains
+- **Reverse proxy** — routes requests to the correct backend service (security, system, file)
+- **Logout** — cookie invalidation across all subdomains
+
+Two implementations are provided:
+
+| File | Runtime | Description |
+|---|---|---|
+| `main.go` | Go / Docker | Self-hosted reverse proxy |
+| `cloudflare-worker.js` | Cloudflare Workers | Edge-deployed proxy |
+
+---
+
+## Architecture
+
+```
+Browser
+  │
+  ▼
+rymory-gateway  (this repo)
+  ├── /security/*   → identity backend (authenticate, account, role)
+  ├── /system/*     → system backend (project, member)
+  ├── /file/*       → file storage backend
+  └── /api/logout   → cookie invalidation
 ```
 
-## 📄 Lisans / License
+The gateway never exposes raw JWT tokens to the browser. All tokens are wrapped in HMAC-signed, HttpOnly, Secure cookies scoped to the root domain.
 
-🇹🇷 Bu proje Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0) lisansı altındadır.
+---
 
-✅ İnceleme ve kişisel/akademik kullanım serbesttir.
+## Configuration
 
-❌ Ticari kullanım yasaktır.
+Copy `.env.example` to `.env` and fill in:
 
-🇬🇧 This project is licensed under the Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)
+```env
+MAIN_DOMAIN=yourdomain.com
+RATE_SECRET_KEY=your-hmac-secret
+SERVICE_TARGET_URL=https://your-service-backend
+SECURITY_TARGET_URL=https://your-security-backend
+SYSTEM_TARGET_URL=https://your-system-backend
+FILE_TARGET_URL=https://your-file-backend
+```
 
-✅ Allowed for review and personal/academic use.
+For Cloudflare Workers, set these as Worker secrets via `wrangler secret put`.
 
-❌ Commercial use is prohibited.
+---
 
+## Running (Go / Docker)
 
-Daha fazla bilgi için / More info: [LICENSE](./LICENSE.txt)
+```bash
+git clone https://github.com/rymory/rymory-gateway.git
+cd rymory-gateway
+cp .env.example .env
+# edit .env
+docker-compose up -d
+```
 
+---
 
-## 🙌 Katkıda Bulunma / Contributing
+## Cloudflare Workers Deployment
 
-🇹🇷 Pull request’lere ve önerilere açığım. Büyük değişiklikler için önce tartışma başlatmanız önerilir.
-🇬🇧 Pull requests and suggestions are welcome. For major changes, please open a discussion first.
+```bash
+npm install -g wrangler
+wrangler login
+wrangler secret put RATE_SECRET_KEY
+wrangler secret put MAIN_DOMAIN
+wrangler deploy cloudflare-worker.js
+```
 
+---
 
-## ✨ İletişim / Contact
+## Security Model
 
-Yazar / Author : [\[Onur Yasar\]](https://onuryasar.org)
+- JWT tokens are **never stored in localStorage** — HttpOnly cookies only
+- Tokens are **HMAC-SHA256 wrapped** before being set as cookies
+- Raw JWT is replaced with a **non-sensitive fake token** in API responses to prevent client-side token theft
+- Rate limiting is enforced at the edge before requests reach the backend
+- All cookies are `Secure`, `HttpOnly`, `SameSite=Lax`
 
-GitHub: [\[onxorg\]](https://github.com/onxorg)
+---
 
-E-Posta / Email: \[onxorg@proton.me\]
+## License
+
+Licensed under **GNU AGPL v3** with Commercial Exception.
+See [LICENSE.txt](./LICENSE.txt) for full terms.
+
+Commercial licensing: onxorg@proton.me
+
+---
+
+## Part of Rymory
+
+```
+rymory-gateway    ← you are here (edge proxy)
+rymory-core       ← identity backend (Go)
+rymory-spec       ← protocol specification
+```
+
+→ [rymory.org](https://rymory.org)
